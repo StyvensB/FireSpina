@@ -1,0 +1,67 @@
+# python "C:\Users\Styvens\Documents\dvd_remix\titleOCR.py" C:\Users\Styvens\Documents\Favela Jiu Jitsu\Disc 1 Open Guard Passes.avi" 50 2
+
+import Image
+import pytesseract
+import cv2
+import sys
+import os
+import argparse
+
+parser = argparse.ArgumentParser(description='Recover the title of the chapters from the main video')
+parser.add_argument('path',help="path of the video file")
+parser.add_argument('-s','--substract',type=int,dest="background",help="rank of the frame to substract")
+parser.add_argument('-d','--delay',type=int,dest="delay",default=0,help="frame number to skip after chapter start")
+args=parser.parse_args()
+if not os.path.exists(args.path):
+	print "Can't find file "+ args.path
+	sys.exit(1)
+
+cap = cv2.VideoCapture(args.path)
+if not cap.isOpened():
+	print "Can't open file "+ args.path
+	sys.exit(1)
+
+delay=args.delay
+if args.background is not None :
+	cap.set(1,args.background)
+	ret,imgRef = cap.read()
+else :
+	imgRef =None
+
+(baseP,extP)=os.path.splitext(args.path)
+titleImgOutP=baseP+"_title"
+if not os.path.exists(titleImgOutP):
+	os.mkdir(titleImgOutP)
+frameIn=open(baseP+"_frame.csv",'r')
+titleOut=open(baseP+"_title.csv",'w')
+
+
+i=1
+for line in frameIn: 
+	frNB=int(line)
+	cap.set(1,frNB+delay)
+	ret,imgTitle = cap.read()
+	cv2.imwrite(titleImgOutP+"\\%02d_org.jpg" % i,imgTitle)
+	if imgRef is not None:
+		imgCV=cv2.absdiff(imgTitle,imgRef)
+		imgCV = cv2.cvtColor(imgCV,cv2.COLOR_BGR2GRAY)
+		ret,imgCV=cv2.threshold(imgCV,30,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+		#print ret
+	else:
+		imgCV=imgTitle
+		imgCV = cv2.cvtColor(imgCV,cv2.COLOR_BGR2RGB)
+	#cv2.imwrite(titleImgOutP+"\\%02d.jpg" % i,imgCV)
+	pil_im = Image.fromarray(imgCV)
+	#pil_im.show()
+	pil_im.save(titleImgOutP+"\\%02d.jpg" % i)
+	title = pytesseract.image_to_string(pil_im,lang='eng')
+	title=title.replace('\n',' ').replace('\r','')
+	print i, title
+	titleOut.write("%02d,%s \n" %(i,title))
+	i=i+1
+
+frameIn.close()
+titleOut.close()
+cap.release()
+sys.exit()
+
