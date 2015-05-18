@@ -11,6 +11,8 @@ parser = argparse.ArgumentParser(description='Recover the title of the chapters 
 parser.add_argument('path',help="path of the video file")
 parser.add_argument('-s','--substract',type=int,dest="background",help="rank of the frame to substract")
 parser.add_argument('-d','--delay',type=int,dest="delay",default=0,help="frame number to skip after chapter start")
+parser.add_argument('-c','--color',dest="color",nargs=3,type=int,help="specify color filtering [0..255] (R G B)")
+parser.add_argument('-r','--radius',dest="colorTolerance",default=30,type=int,help="color tolerance (radius) (30)")
 args=parser.parse_args()
 if not os.path.exists(args.path):
 	print "Can't find file "+ args.path
@@ -27,6 +29,12 @@ if args.background is not None :
 	ret,imgRef = cap.read()
 else :
 	imgRef =None
+
+if args.color is not None :
+	colRef	= (args.color[2],args.color[1],args.color[0])
+	colThres= args.colorTolerance
+else :
+	colRef = None
 
 (baseP,extP)=os.path.splitext(args.path)
 titleImgOutP=baseP+"_title"
@@ -47,6 +55,13 @@ for line in frameIn:
 		imgCV = cv2.cvtColor(imgCV,cv2.COLOR_BGR2GRAY)
 		ret,imgCV=cv2.threshold(imgCV,30,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 		#print ret
+	elif colRef is not None:
+		imgCV=cv2.cvtColor(imgTitle,cv2.COLOR_BGR2GRAY)
+		for j in range(0,3):
+			ret,chal1=cv2.threshold(imgTitle[:,:,j],colRef[j]-colThres,255,cv2.THRESH_BINARY)
+			ret,chal2=cv2.threshold(imgTitle[:,:,j],colRef[j]+colThres,255,cv2.THRESH_BINARY_INV)
+			imgFilter=cv2.multiply(chal1,chal2)
+			imgCV=cv2.multiply(imgCV,imgFilter)
 	else:
 		imgCV=imgTitle
 		imgCV = cv2.cvtColor(imgCV,cv2.COLOR_BGR2RGB)
