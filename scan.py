@@ -9,6 +9,7 @@ parser.add_argument('-r','--reference',required=True,type=int,dest="reference",h
 parser.add_argument('-s','--skip',dest="skip",type=int,default=30,help="number of frame to skip between comparison")
 parser.add_argument('-t','--threshold',type=float,dest="threshold",default=0.6,help="value of the minimum correlation coefficient to trigger a detection [0..1] (0.6)")
 parser.add_argument('-b','--back',dest="back",type=int,default=0,help="number of frame to back track when match is found")
+parser.add_argument('--clip',dest="clip",type=int,nargs=4,help="coordinates of the left,top,right,bottom corner of the rectangle to clip")
 args=parser.parse_args()
 
 if not os.path.exists(args.path):
@@ -20,17 +21,31 @@ except:
 	print "Video Format not supported"
 	
 if not cap.isOpened():
+	print "Can't open file "+ args.path
 	sys.exit(1)
 
-backTrack=args.back
+modifier=[]
+#modifier.append(lambda x:cv2.bitwise_not(x) )
+if args.clip is not None :
+	modifier.append(lambda x:x[args.clip[1]:args.clip[3],args.clip[0]:args.clip[2]] )
+	
+def modify(x):
+	a=x
+	for f in modifier:
+		a=f(a)
+	return a
 
+totalFrame=cap.get(7)	
+backTrack=args.back
 step=args.skip
 cap.set(1,args.reference)# 1 for CV_CAP_PROP_POS_FRAMES
 ret,img = cap.read()
 img=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+img=modify(img)
+
 cap.set(2,0)
 flag=False
-totalFrame=cap.get(7)
+
 (baseP,extP)=os.path.splitext(args.path)
 frOut=open(baseP+"_frame.csv",'w')
 tOut=open(baseP+"_time.txt",'w')
@@ -39,10 +54,13 @@ threshold=args.threshold
 while(cap.get(1) < totalFrame):
 	ret,frame= cap.read()
 	frameG = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	frameG= modify(frameG)
 	rmatch=cv2.matchTemplate(frameG,img,cv2.TM_CCOEFF_NORMED)
 	frameNB = cap.get(1)
 	if rmatch[0,0] >= threshold and  flag == False:
 		frameStop=frameNB
+		#cv2.imwrite(baseP+"%07d.jpg" % frameNB,frameG)
+		#print baseP+"\\%d.jpg" % frameNB
 		substep=int(step/2)
 		frNB=frameNB-substep
 		#print "tmp:%d good:%d "% (frNB,frameNB)
@@ -51,6 +69,7 @@ while(cap.get(1) < totalFrame):
 				cap.set(1,frNB)
 			   	ret,frame= cap.read()
 				frameG = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+				frameG = modify(frameG)
 				rmatch1=cv2.matchTemplate(frameG,img,cv2.TM_CCOEFF_NORMED)
 				substep=int(substep/2)
 				if rmatch1[0,0] >= threshold:
@@ -65,7 +84,7 @@ while(cap.get(1) < totalFrame):
 		t = cap.get(0)/1000
 		m, s = divmod(t, 60)
 		h, m = divmod(m, 60)
-		tOut.write("%d:%02d:%04.2f," % (h, m, s-0.09))#, frameNB,rmatch[0,0], t
+		tOut.write("%d:%02d:%04.2f," % (h, m, s))#, frameNB,rmatch[0,0], t
 		sys.stderr.write("%04.1f %% %d:%02d:%04.2f \n" % (cap.get(2)*100,h, m, s))
 		flag= True
 		cap.set(1,frameStop)

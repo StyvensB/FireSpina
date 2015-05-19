@@ -11,6 +11,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Recover the title of the chapters from the main video')
 parser.add_argument('path',help="path of the video file")
 parser.add_argument('-d','--delay',type=int,dest="delay",default=0,help="frame number to skip after chapter start")
+parser.add_argument('--clip',dest="clip",type=int,nargs=4,help="coordinates of the left,top,right,bottom corner of the rectangle to clip")
 parser.add_argument('-m','--method',dest="method",choices=['subtract','color','accumulate'],help="Method to use to highlight the title")
 # Method Specific Options
 #	Background subtraction
@@ -56,6 +57,19 @@ elif args.method == 'color':
 		print "color method need COLOR"
 		sys.exit(1)
 
+modifier=[]
+#modifier.append(lambda x:cv2.bitwise_not(x) )
+if args.clip is not None :
+	modifier.append(lambda x:x[args.clip[1]:args.clip[3],args.clip[0]:args.clip[2],:] )
+	width  = args.clip[2]-args.clip[0] # CV_CAP_PROP_FRAME_WIDTH
+	height = args.clip[3]-args.clip[1]
+	
+def modify(x):
+	a=x
+	for f in modifier:
+		a=f(a)
+	return a
+	
 # Open the necessary Files
 (baseP,extP)=os.path.splitext(args.path)
 titleImgOutP=baseP+"_title"
@@ -70,6 +84,7 @@ for line in frameIn:
 	frNB=int(line)
 	cap.set(1,frNB+delay)
 	ret,imgTitle = cap.read()
+	imgTitle=modify(imgTitle)
 	cv2.imwrite(titleImgOutP+"\\%02d_org.jpg" % i,imgTitle)
 	if args.method == 'substract':
 		imgCV=cv2.absdiff(imgTitle,imgRef)
@@ -89,6 +104,7 @@ for line in frameIn:
 		for j in range(1,args.sample):
 			cap.set(1,frNB+delay+j*int(args.span/args.sample))
 			ret,imgTemp = cap.read()
+			imgTemp=modify(imgTemp)
 			imgTemp=cv2.cvtColor(imgTemp,cv2.COLOR_BGR2GRAY)
 			imgCV=cv2.bitwise_and(imgCV,imgTemp)
 	else:
