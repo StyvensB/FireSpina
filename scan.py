@@ -35,6 +35,18 @@ def modify(x):
 		a=f(a)
 	return a
 
+def corrMeasure(imgTest):
+	if len(imgTest.shape) == 3 :
+		imgTest=cv2.cvtColor(imgTest, cv2.COLOR_BGR2GRAY)
+	elif len(imgTest.shape) == 2:
+		pass
+	else:
+		raise TypeErrror("imgTest as wrong dimension"+imgTest.shape)
+	rmatch=cv2.matchTemplate(imgTest,img,cv2.TM_CCOEFF_NORMED)
+	return rmatch[0,0] >= threshold
+
+measure=corrMeasure
+
 totalFrame=cap.get(7)	
 backTrack=args.back
 step=args.skip
@@ -43,21 +55,24 @@ ret,img = cap.read()
 img=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 img=modify(img)
 
-cap.set(2,0)
-flag=False
 
+
+## File Opening
 (baseP,extP)=os.path.splitext(args.path)
 frOut=open(baseP+"_frame.csv",'w')
 tOut=open(baseP+"_time.txt",'w')
 threshold=args.threshold
 
+## LOOP Initialisation
+cap.set(2,0)
+flag=False
+
 while(cap.get(1) < totalFrame):
-	ret,frame= cap.read()
-	frameG = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	frameG= modify(frameG)
-	rmatch=cv2.matchTemplate(frameG,img,cv2.TM_CCOEFF_NORMED)
 	frameNB = cap.get(1)
-	if rmatch[0,0] >= threshold and  flag == False:
+	ret,frame= cap.read()
+	frameG= modify(frame)
+	cond=measure(frameG)
+	if cond and  flag == False:
 		frameStop=frameNB
 		#cv2.imwrite(baseP+"%07d.jpg" % frameNB,frameG)
 		#print baseP+"\\%d.jpg" % frameNB
@@ -68,11 +83,9 @@ while(cap.get(1) < totalFrame):
 			while substep >0 :
 				cap.set(1,frNB)
 			   	ret,frame= cap.read()
-				frameG = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-				frameG = modify(frameG)
-				rmatch1=cv2.matchTemplate(frameG,img,cv2.TM_CCOEFF_NORMED)
+				frameG = modify(frame)
 				substep=int(substep/2)
-				if rmatch1[0,0] >= threshold:
+				if measure(frameG):
 				  frameNB=frNB
 				  frNB=frNB-substep
 				else:
@@ -88,7 +101,7 @@ while(cap.get(1) < totalFrame):
 		sys.stderr.write("%04.1f %% %d:%02d:%04.2f \n" % (cap.get(2)*100,h, m, s))
 		flag= True
 		cap.set(1,frameStop)
-	elif flag == True and rmatch[0,0] < 0.5:
+	elif flag == True and not cond:
 		flag = False
 	a=cap.set(1,cap.get(1)+step);
 
