@@ -1,7 +1,7 @@
 @echo off
 
 setlocal
-PATH=%PATH%;C:\ffmpeg-20150329-git-cf16b45-win64-static\bin\
+Rem PATH=%PATH%;path to ffmpeg
 
 REM check cut time File 
 if not exist "%~dpn1_time.txt" (
