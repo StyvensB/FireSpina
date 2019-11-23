@@ -1,4 +1,4 @@
-# python "C:\Users\Styvens\Documents\dvd_remix\titleOCR.py" C:\Users\Styvens\Documents\Favela Jiu Jitsu\Disc 1 Open Guard Passes.avi" 50 2
+#!/usr/bin/env python
 
 import Image
 import pytesseract
@@ -84,11 +84,16 @@ frameIn=open(baseP+"_frame.csv",'r')
 titleOut=open(baseP+"_title.csv",'w')
 
 #Start Processing Loop
-i=1
+frameList=map(int,frameIn.readlines())
+if frameList[0]==0:
+	i=0
+else:
+	i=1
+
 totalFrame=cap.get(7)
-for line in frameIn: 
+for frNB in frameList: 
 	try:
-		frNB=int(line)
+		#frNB=int(line)
 		cap.set(1,frNB+delay)
 		ret,imgTitle = cap.read()
 		imgTitle=modify(imgTitle)
@@ -120,7 +125,7 @@ for line in frameIn:
 		#cv2.imwrite(titleImgOutP+"\\%02d.jpg" % i,imgCV)
 		pil_im = Image.fromarray(imgCV)
 		#pil_im.show()
-		pil_im.save(titleImgOutP+"\\%02d.jpg" % i)
+		pil_im.save(titleImgOutP+"\\%02d_mod.jpg" % i)
 		#Perform the OCR
 		title = pytesseract.image_to_string(pil_im,lang='eng')
 		title=title.replace('\n',' ').replace('\r','')

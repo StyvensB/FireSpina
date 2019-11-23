@@ -113,9 +113,11 @@ if __name__ == '__main__':
 	flag=False
 	rank=0
 	selFrame=[]
+	frameSpan=range(1,int(totalFrame),step)
+	
 
-	while(cap.get(1) < totalFrame):
-		frameNB = cap.get(1)
+	for frameNB in frameSpan:
+		cap.set(1,frameNB)
 		ret,frame= cap.read()
 		frameG= modify(frame)
 		cond=measure(frameG,img)
@@ -129,10 +131,10 @@ if __name__ == '__main__':
 			flag= True
 			rank=rank+1
 			sys.stderr.write("%04.1f %%"% (cap.get(2)*100)+" %d:%02d:%04.2f \n" % formatMili(cap.get(0)/1000))
-			cap.set(1,frameNB)
+			#cap.set(1,frameNB)
 		elif flag == True and not cond:
 			flag = False
-		a=cap.set(1,cap.get(1)+step);
+		#a=cap.set(1,cap.get(1)+step);
 
 	## File Opening
 	(baseP,extP)=os.path.splitext(args.path)
