@@ -25,13 +25,12 @@ Fire Splina is an assisting tool aiming at bash processing of video file. Thus i
 + [Tesseract] via [PyTesseract] as OCR engine
 
 ### Version
-0.1.2
+1.0
 
 ### Installation
 Pretty Straightforward 
 You need to install all those dependencies
  + [Python] 
- + [OpenCV]  
  + [Numpy]
  + [ffmpeg] 
  + [Tesseract] 
@@ -41,11 +40,11 @@ And make sure there available in you **PATH** or can be imported in your python 
 
 ##Usage
 
-*Fire Splina* consist of *four* different module. So you can stop, replay, or alter the process at any time.Plus you can always tweek or edit their text output. The four modules follows the philosophy  **Fi**nd ,**Re**ad **Spli**t and  **Na**me and therefore are:
- + scan.py
- + titleOCR.py
- + cut.bat/(sh)
- + rename.py
+*Fire Splina* follow a three step approach. So you can stop, replay, or alter the process at any time.Plus you can always tweek or edit their text output. The three modules follows the philosophy  **Fi**nd the transition,**Re**ad the title, **Spli**t and  **Na**me the chapter and therefore are:
+ + trans_***.py
+ + title_***.py
+ + chap_***.py
+
 
 I highly recommend to use an external video editor allowing to navigate the video by frame index. It will help you a lot figuring out what parameter value of parameter to enter.
 
@@ -53,20 +52,22 @@ Each module have is own help menu. Depending on your environment you may run dir
 ```sh
 moduleName.py --help
 ```
-#### Find with scan.py
-Scan.py intend to find transition in a video file based on a reference image or frame. As of now this reference image can only be specified by a frame index using the **-r or --reference** options. The heuristics rely also on two optionnal parameters. The threshold value triggering a match and the number of frame to skip betwwen each evaluation.
+#### Find with trans***.py
++ trans_black.py intend to find transition in a video file based on black frames.
++ trans_chroma.py intend to find transition in a video file based on a predominant color in certain frame. it then replace that color by black pixel using the chromakey filter.
++ trans_black.py intend to find transition in a video file based on the difference with a refernce frame previously exported with your favourite viedo player.
 ```sh
-scan.py --reference 90 --skip 30 --threshold 0.6 /my/video/file.avi
+trans_black.py  /my/video/file.avi
 ```
-Scan.py output its result in two editable text files. One holding the frame indexes, and one holding the time. Both indicate the location of a cut.
+trans***.py output its result in two editable text files. One holding the frame indexes, and one holding the time. Both indicate the location of a cut.
 
-#### Read with titleOCR.py
-TitleOCR.py aim at retrieving the chapter title by reading it on the video file. You can add parameters and specify some filtering treatment to dramatically improve the quality of the optical recognition (OCR). In case the tool would fail to reach a good enough accuracy. you can still edit the file and go on.
+#### Extract and Read and with title_***.py
++ title_extract.py aim at retrieving the chapter frame title by extracting them from the  the video file. You can add a frame delay parameters to find the specific frame.
++ title_OCR.py use an OCR engine to decipher the title written in the frame. In case the tool would fail to reach a good enough accuracy. you can still edit the file and go on.
 
-####Split with cut.bat
-Cut.bat is more a convenience wrapper for ffmpeg than a independent tool. Its aim to be edited by the user so it can add is more specific options directly to ffmpeg. Linux users can for now directly use the ffmpeg command inside the file.
-####Name with rename.py
-Rename.py does something simple.Yet it aims at doing it well. It takes input from titleOCR.py and rename the file outputted by cut.bat (ffmpeg). Make sure you have checked and corrected the output of titleOCR.py so you can avoid bad surprise.
+####Split and name with chap_***.py
++ chap_cut.py  is more a convenience wrapper for ffmpeg than a independent tool. 
++ chap_title.py does something simple.Yet it aims at doing it well. It takes input from title_OCR.py and rename the chapter video cut by chap_cut.py (ffmpeg). Make sure you have checked and corrected the output of title_OCR.py so you can avoid bad surprise.
 
 ## Development
 I am the main developer of this Open Source project. I will continue developing it as a hobbyist according to my need. Want to Learn more about me [S.Belloge] .
@@ -75,9 +76,9 @@ Want to contribute? Great let's make it happen !
 
 ### TODO
 
- - Re-factor (clean) and add similarity measure 
- - Re-factor (clean) and add search algorithm
- - Make a BaSH version of cut.bat
+ - Re-factor and remove redundancy(clean) 
+ - Investigate search algorithm by time diffference
+ - Investigate search algorithm with audio track
  - Add Code Comments Globally
  - Package for distribution or as standalone
  - Make GUI
@@ -95,6 +96,5 @@ MIT
 [Tesseract]:code.google.com/p/tesseract-ocr
 [ffmpeg]:https://www.ffmpeg.org/
 [Python]:https://www.python.org/
-[OpenCV]:http://opencv.org/
 [PyTesseract]:https://pypi.python.org/pypi/pytesseract
 [Numpy]: www.numpy.org/
