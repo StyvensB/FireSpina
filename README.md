@@ -1,6 +1,14 @@
-# FiRe SpliNa
+# FiRe SpiNa
 
-*Fire Splina*  is an utility suite allowing user to split instructional video file. Thus resulting in a better learning experience. Its features the following abilities.
+# UPDATE 
+ FireSpina 1.0 go now Full [ffmpeg] !!!
+ It means more:
++ more **Speed** (use of OpenCL)
++ more **video format** compatibility (not just avi!!!)
++ no more frame skipping !!!
+ 
+ 
+*Fire Spina*  is an utility suite allowing user to split instructional video file. Thus resulting in a better learning experience. Its features the following abilities.
 
   - Automate research of transition
   - Optical Recognition of title
@@ -11,7 +19,7 @@ Fire Splina is an assisting tool aiming at bash processing of video file. Thus i
 
  - **Fi**nd it
  - **Re**ad it,
- - **Spli**t it and
+ - **Sp**(l)**i**t it and
  - **Na**me it   , ("Yeah!")
 
 
@@ -20,7 +28,6 @@ Fire Splina is an assisting tool aiming at bash processing of video file. Thus i
 
 *Fire Splina* rely heavily on a few open source project all worth mentioning. Here is a list:
 + [Python] 2.7 as base scripting layer
-+ [OpenCV] for python for frame manipulation
 + [ffmpeg] for splitting and conversion
 + [Tesseract] via [PyTesseract] as OCR engine
 
@@ -65,7 +72,7 @@ trans***.py output its result in two editable text files. One holding the frame 
 + title_extract.py aim at retrieving the chapter frame title by extracting them from the  the video file. You can add a frame delay parameters to find the specific frame.
 + title_OCR.py use an OCR engine to decipher the title written in the frame. In case the tool would fail to reach a good enough accuracy. you can still edit the file and go on.
 
-####Split and name with chap_***.py
+#### Split and name with chap_***.py
 + chap_cut.py  is more a convenience wrapper for ffmpeg than a independent tool. 
 + chap_title.py does something simple.Yet it aims at doing it well. It takes input from title_OCR.py and rename the chapter video cut by chap_cut.py (ffmpeg). Make sure you have checked and corrected the output of title_OCR.py so you can avoid bad surprise.
 
